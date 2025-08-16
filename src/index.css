@@ -38,3 +38,93 @@
 .input-group.custom-input .btn:hover {
   background-color: #e6e6e6;
 }
+
+.sidebar-container .ps-sidebar-container {
+  background-color: #1f263e;
+  height: 100vh;
+  border-top-right-radius: 50px;
+  border-top-right-radius: 50px;
+}
+
+.sidebar-container .ps-menu-button {
+  color: #ffffff !important;
+  transition: 0.5s;
+}
+
+.sidebar-container .ps-menu-button:hover {
+  background-color: #0092471a !important;
+  border-left: 2px solid #009247 !important;
+}
+
+/* ===== Variables ===== */
+:root {
+  --header-bg: #e2e5eb;
+  --row-bg: #f8f9fb;
+  --text-color: #333;
+  --radius-lg: 50px;
+  --radius-md: 40px;
+}
+
+/* ===== Table Container ===== */
+
+.custom-table {
+  max-height: 400px;
+  overflow: auto;
+  white-space: nowrap;
+  border-collapse: separate; /* allows border-radius on cells */
+  border-spacing: 0;
+}
+
+/* ===== Header Styling ===== */
+.custom-table thead {
+  background-color: var(--header-bg);
+}
+
+.custom-table thead th {
+  background-color: var(--header-bg);
+  font-weight: bold;
+  color: var(--text-color);
+  padding: 40px 30px;
+  vertical-align: middle;
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Header corner rounding */
+.custom-table thead tr:first-child th:first-child {
+  border-top-left-radius: var(--radius-lg);
+  border-bottom-left-radius: var(--radius-lg);
+}
+.custom-table thead tr:first-child th:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+/* ===== Body Styling ===== */
+.custom-table tbody td {
+  vertical-align: middle;
+  padding: 20px;
+  background-color: var(--row-bg);
+  border: none !important;
+}
+
+.add-button-container h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #1f263e !important;
+}
+
+/* First row corner rounding */
+.custom-table tbody tr:first-child td:first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+.custom-table tbody tr:first-child td:last-child {
+  border-top-right-radius: var(--radius-md);
+}
+
+/* ===== Utility Classes ===== */
+.custom-table .no-border {
+  border: none !important;
+}

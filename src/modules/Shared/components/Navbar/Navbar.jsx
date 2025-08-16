@@ -1,39 +1,50 @@
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+// import { useNavigate } from "react-router-dom";
+// import { toast } from "react-toastify";
 
-function Navbar() {
-  const navigate = useNavigate();
+function Navbar({ userData }) {
+  // const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Clear storage
-    localStorage.removeItem("token");
-    localStorage.removeItem("user"); // If you store user info
+  // const handleLogout = () => {
+  //   // Clear storage
+  //   localStorage.removeItem("token");
+  //   localStorage.removeItem("user"); // If you store user info
 
-    // Optionally: clear Redux or context if used
-    // dispatch(logoutUser());
+  //   // Optionally: clear Redux or context if used
+  //   // dispatch(logoutUser());
 
-    // Show success toast
-    toast.success("👋 Logged out successfully");
+  //   // Show success toast
+  //   toast.success("👋 Logged out successfully");
 
-    // Navigate to login
-    navigate("/login");
-  };
+  //   // Navigate to login
+  //   navigate("/login");
+  // };
 
   return (
-    <nav className="navbar navbar-expand-lg bg-body-tertiary px-4 py-2 shadow-sm">
+    <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <a className="navbar-brand" href="/">
-          YourApp
+        <a className="navbar-brand" href="#">
+          Navbar
         </a>
-
-        {/* Logout button */}
         <button
-          className="btn btn-outline-danger ms-auto"
-          onClick={handleLogout}
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
-          <i className="fa fa-sign-out-alt me-1"></i>
-          Logout
+          <span className="navbar-toggler-icon"></span>
         </button>
+        <div className="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li className="nav-item">
+              <a className="nav-link" href="#">
+                {userData ? `Welcome, ${userData.userName}` : "Guest"}
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </nav>
   );

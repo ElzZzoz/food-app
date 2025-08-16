@@ -1,18 +1,18 @@
-import Sidebar from "../Sidebar/Sidebar";
+import SideBar from "../SideBar/SideBar";
 import Navbar from "../Navbar/Navbar";
 import Header from "../Header/Header";
 import { Outlet } from "react-router-dom";
 
-function MasterLayout() {
+function MasterLayout({ userData }) {
   return (
     <>
-      <div className="d-flex">
-        <div className="w-25 bg-light vh-100">
-          <Sidebar />
+      <div className="d-flex vh-100">
+        <div className="bg-light ">
+          <SideBar userData={userData} />
         </div>
-        <div className="w-75 bg-dark text-white">
-          <Navbar />
-          <Header />
+        <div className="w-100  text-white">
+          <Navbar userData={userData} />
+          {/* <Header /> */}
           <Outlet />
         </div>
       </div>

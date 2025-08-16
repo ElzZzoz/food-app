@@ -1,0 +1,483 @@
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f8f9fa;
+}
+
+.food-app-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* React Pro Sidebar Customization */
+.custom-sidebar {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1) !important;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%) !important;
+}
+
+.custom-sidebar .ps-sidebar-container {
+  background: transparent !important;
+  color: #ecf0f1 !important;
+}
+
+.custom-sidebar .ps-menu-root {
+  padding: 0 !important;
+}
+
+.custom-sidebar .ps-menuitem-root {
+  margin: 0.5rem 0 !important;
+}
+
+.custom-sidebar .ps-menu-button {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+  transition: all 0.3s ease !important;
+}
+
+.custom-sidebar .ps-menu-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ecf0f1 !important;
+  transform: translateX(5px);
+}
+
+/* Active menu item styles */
+.custom-sidebar .ps-active {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+  color: white !important;
+  border-radius: 0 25px 25px 0 !important;
+  margin-right: 1rem !important;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3) !important;
+}
+
+.custom-sidebar .ps-active::after {
+  content: "";
+  position: absolute;
+  right: -1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid #3498db;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  z-index: 10;
+}
+
+.custom-sidebar .ps-active:hover {
+  transform: none !important;
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+}
+
+/* Icon styles */
+.custom-sidebar .ps-menu-button .ps-menu-icon {
+  width: 20px !important;
+  margin-right: 1rem !important;
+  text-align: center !important;
+  font-size: 18px !important;
+}
+
+/* Logo Section */
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  background: transparent;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
+  transition: all 0.3s ease;
+}
+
+.logo-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(46, 204, 113, 0.4);
+}
+
+.logo-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.logo-text {
+  color: #ecf0f1;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-item .ps-menu-button {
+  color: #e74c3c !important;
+  border-radius: 8px !important;
+}
+
+.logout-item .ps-menu-button:hover {
+  background: rgba(231, 76, 60, 0.1) !important;
+  color: #c0392b !important;
+  transform: none !important;
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hero Section */
+.hero-section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero-content {
+  max-width: 600px;
+  text-align: center;
+  z-index: 2;
+}
+
+/* Character Illustration */
+.hero-illustration {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+.character {
+  position: relative;
+  z-index: 3;
+}
+
+.character-body {
+  position: relative;
+}
+
+.head {
+  width: 80px;
+  height: 80px;
+  background: #fdbcb4;
+  border-radius: 50%;
+  position: relative;
+  margin: 0 auto 10px;
+}
+
+.head::before {
+  content: "";
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  background: #2c3e50;
+  border-radius: 30px 30px 10px 10px;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.body {
+  width: 100px;
+  height: 120px;
+  background: #3498db;
+  border-radius: 50px 50px 20px 20px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.arms {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.arm {
+  width: 40px;
+  height: 80px;
+  background: #fdbcb4;
+  border-radius: 20px;
+  position: absolute;
+}
+
+.left-arm {
+  left: -60px;
+  transform: rotate(-30deg);
+}
+
+.right-arm {
+  right: -60px;
+  transform: rotate(30deg);
+}
+
+/* Cooking Items */
+.cooking-items {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.pot {
+  width: 60px;
+  height: 40px;
+  background: #34495e;
+  border-radius: 10px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.pot::before {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 15px;
+  background: #34495e;
+  right: -15px;
+  top: 10px;
+  border-radius: 0 5px 5px 0;
+}
+
+.ingredient {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  position: absolute;
+  animation: float 3s ease-in-out infinite;
+}
+
+.ingredient-1 {
+  background: #e74c3c;
+  top: -30px;
+  left: 20px;
+  animation-delay: 0s;
+}
+
+.ingredient-2 {
+  background: #f39c12;
+  top: -40px;
+  right: 15px;
+  animation-delay: 1s;
+}
+
+.ingredient-3 {
+  background: #9b59b6;
+  top: -25px;
+  left: 40px;
+  animation-delay: 2s;
+}
+
+/* Decorative Circles */
+.decorative-circles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.circle-1 {
+  width: 80px;
+  height: 80px;
+  top: 10%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.circle-2 {
+  width: 60px;
+  height: 60px;
+  top: 20%;
+  right: 15%;
+  animation-delay: 1s;
+}
+
+.circle-3 {
+  width: 100px;
+  height: 100px;
+  bottom: 20%;
+  left: 10%;
+  animation-delay: 2s;
+}
+
+.circle-4 {
+  width: 40px;
+  height: 40px;
+  bottom: 30%;
+  right: 25%;
+  animation-delay: 3s;
+}
+
+/* Animations */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .food-app-container {
+    flex-direction: column;
+  }
+
+  .custom-sidebar {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .sidebar-header {
+    padding: 1rem;
+  }
+
+  .logo-container {
+    flex-direction: row;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .main-content {
+    height: calc(100vh - 120px);
+  }
+
+  .hero-illustration {
+    width: 250px;
+    height: 250px;
+  }
+}
+
+/* Collapsed sidebar styles */
+.custom-sidebar.ps-collapsed {
+  width: 80px !important;
+}
+
+.custom-sidebar.ps-collapsed .sidebar-header {
+  padding: 1rem 0.5rem;
+}
+
+.custom-sidebar.ps-collapsed .logo-container {
+  flex-direction: column;
+}
+
+.custom-sidebar.ps-collapsed .logo-text {
+  display: none;
+}
+
+.custom-sidebar.ps-collapsed .sidebar-footer {
+  padding: 1rem 0.5rem;
+}
+
+/* Override react-pro-sidebar default styles */
+.ps-sidebar-root {
+  border: none !important;
+}
+
+.ps-sidebar-container {
+  border-right: none !important;
+}
+
+/* Custom scrollbar */
+.custom-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.custom-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.custom-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Bootstrap Integration */
+.custom-sidebar .btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+.custom-sidebar .btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+/* Additional utility classes */
+.d-flex {
+  display: flex !important;
+}
+
+.justify-content-center {
+  justify-content: center !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}

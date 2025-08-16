@@ -1,12 +1,13 @@
 import "./App.css";
-
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
-
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import Login from "./modules/Authentecation/components/Login/Login";
 import ChangePass from "./modules/Authentecation/components/ChangePass/ChangePass";
 import ForgetPass from "./modules/Authentecation/components/ForgetPass/ForgetPass";
@@ -26,6 +27,50 @@ import CategoryData from "./modules/Categories/components/CategoryData/CategoryD
 import ProtectedRoute from "./modules/Shared/components/ProtectedRoutes/ProtectedRoutes";
 
 function App() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  const handleLoginSubmit = async (formData) => {
+    try {
+      const response = await axios.post(
+        "https://upskilling-egypt.com:3006/api/v1/Users/Login",
+        formData
+      );
+
+      const { token, expiresIn } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("token_expiry", expiresIn);
+
+      const decoded = jwtDecode(token);
+      setUserData(decoded); // full decoded user data
+      localStorage.setItem("userData", JSON.stringify(decoded)); // ✅ save in localStorage
+
+      setLoginSuccess(true);
+      toast.success("🎉 Logged in successfully");
+    } catch (err) {
+      toast.error("Login failed: " + (err.response?.data?.message || "Error"));
+      setLoginSuccess(false);
+    }
+  };
+
+  // ✅ Restore user data when app loads
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserData(decoded);
+        setLoginSuccess(true);
+      } catch (err) {
+        console.error("Invalid token", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("userData");
+      }
+    }
+  }, []);
+
   const routes = createBrowserRouter([
     {
       path: "",
@@ -34,29 +79,31 @@ function App() {
       children: [
         {
           index: true,
-          element: <Login />,
+          element: (
+            <Login
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              onLoginSubmit={handleLoginSubmit}
+              loginSuccess={loginSuccess}
+            />
+          ),
         },
         {
           path: "login",
-          element: <Login />,
+          element: (
+            <Login
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              onLoginSubmit={handleLoginSubmit}
+              loginSuccess={loginSuccess}
+            />
+          ),
         },
-        {
-          path: "register",
-          element: <Register />,
-        },
-        {
-          path: "forget-password",
-          element: <ForgetPass />,
-        },
+        { path: "register", element: <Register /> },
+        { path: "forget-password", element: <ForgetPass /> },
         { path: "reset-password", element: <ResetPass /> },
-        {
-          path: "verify-account",
-          element: <VerifyAcc />,
-        },
-        {
-          path: "change-password",
-          element: <ChangePass />,
-        },
+        { path: "verify-account", element: <VerifyAcc /> },
+        { path: "change-password", element: <ChangePass /> },
       ],
     },
     {
@@ -65,15 +112,15 @@ function App() {
       errorElement: <NotFound />,
       children: [
         {
-          element: <MasterLayout />,
+          element: <MasterLayout userData={userData} />,
           children: [
-            { index: true, element: <Dashboard /> },
+            { index: true, element: <Dashboard userData={userData} /> },
             { path: "categories", element: <CategoriesList /> },
             { path: "category-data", element: <CategoryData /> },
             { path: "recipes", element: <RecipesList /> },
             { path: "recipes-data", element: <RecipesData /> },
             { path: "favourites", element: <FavList /> },
-            { path: "users", element: <UsersList /> },
+            { path: "users", element: <UsersList userData={userData} /> },
           ],
         },
       ],
@@ -83,8 +130,7 @@ function App() {
   return (
     <>
       <RouterProvider router={routes} />
-      <ToastContainer position="top-right" autoClose={3000} />{" "}
-      {/* 👈 this shows the toasts */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 }

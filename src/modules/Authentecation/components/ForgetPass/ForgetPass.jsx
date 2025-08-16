@@ -1,32 +1,31 @@
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
-import logo from "../../../../assets/images/auth-logo.png";
 import { useNavigate } from "react-router-dom";
+import logo from "../../../../assets/images/auth-logo.png";
+import Spinner from "../../../Shared/components/Spinner/Spinner";
+import { emailValidation } from "../../../Shared/components/utils/formValidations";
 
-function ForgetPass() {
+function ForgetPassword() {
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    reset,
+    formState: { errors, isSubmitting },
   } = useForm();
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         "https://upskilling-egypt.com:3006/api/v1/Users/Reset/Request",
-        data
+        { email: data.email }
       );
-      console.log("Reset link sent:", response.data);
-      toast.success("📬 Reset link sent to your email.");
-      reset();
-      navigate("/reset-password"); // Redirect to reset password page
+      toast.success("✅ OTP sent! Check your email.");
+      navigate("/reset-password", { state: { email: data.email } });
     } catch (err) {
       const errorMsg =
         err.response?.data?.message || "Something went wrong. Try again.";
-      toast.error(`❌ ${errorMsg}`);
+      toast.error(errorMsg);
     }
   };
 
@@ -35,45 +34,40 @@ function ForgetPass() {
       <div className="container-fluid bg-overlay">
         <div className="row vh-100 justify-content-center align-items-center">
           <div className="col-md-5 rounded-3 bg-white px-5 py-5">
-            <div className="logo-container text-center">
+            <div className="logo-container text-center mb-4">
               <img className="w-50" src={logo} alt="logo" />
             </div>
-            <div className="title text-center">
-              <h4>Forgot Password</h4>
-              <p className="text-muted">
-                Enter your email and we’ll send you reset instructions.
-              </p>
-            </div>
+            <h4 className="mb-3">Forgot Password</h4>
+            <p className="text-muted mb-4">
+              Enter your email to receive an OTP
+            </p>
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="input-group mb-3">
-                <span className="input-group-text" id="email-addon">
-                  <i className="fa fa-envelope" aria-hidden="true"></i>
+                <span className="input-group-text" aria-label="Email icon">
+                  <i className="fa fa-envelope" aria-hidden="true" />
                 </span>
                 <input
                   type="email"
                   className="form-control"
-                  placeholder="Enter your E-mail"
-                  aria-label="Email"
-                  aria-describedby="email-addon"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Invalid email address",
-                    },
-                  })}
+                  placeholder="Enter your Email"
+                  {...register("email", emailValidation)}
                 />
               </div>
               {errors.email && (
-                <p className="text-danger small">{errors.email.message}</p>
+                <p className="text-danger">{errors.email.message}</p>
               )}
 
               <button
                 type="submit"
-                className="btn btn-primary bg-success w-100"
+                className="btn btn-success w-100"
+                disabled={isSubmitting}
               >
-                Send Reset Link
+                {isSubmitting ? (
+                  <Spinner size="sm" color="light" />
+                ) : (
+                  "Send OTP"
+                )}
               </button>
             </form>
           </div>
@@ -83,4 +77,4 @@ function ForgetPass() {
   );
 }
 
-export default ForgetPass;
+export default ForgetPassword;

@@ -1,13 +1,15 @@
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useState } from "react";
-import logo from "../../../../assets/images/auth-logo.png"; // adjust if needed
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import logo from "../../../../assets/images/auth-logo.png"; // adjust path
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import Spinner from "../../../Shared/components/Spinner/Spinner"; // shared spinner
 
 function ResetPass() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -16,25 +18,37 @@ function ResetPass() {
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm();
 
+  // Get email from query params or location state
+  useEffect(() => {
+    const email =
+      location.state?.email ||
+      new URLSearchParams(location.search).get("email");
+    if (email) setValue("email", email);
+  }, [location, setValue]);
+
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      const response = await axios.put(
+      const response = await axios.post(
         "https://upskilling-egypt.com:3006/api/v1/Users/Reset",
         data
       );
       console.log("Password reset successful:", response.data);
       toast.success("✅ Password reset successful!");
       navigate("/login");
-      console.log("Form data submitted:", data);
     } catch (err) {
       const errorMsg =
         err.response?.data?.message || "Something went wrong. Try again.";
-      console.error("Error during password reset:", err.response.data);
+      console.error("Error during password reset:", err.response?.data);
       toast.error(errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <div className="auth-container">
       <div className="container-fluid bg-overlay">
@@ -64,6 +78,7 @@ function ResetPass() {
                       message: "Invalid email address",
                     },
                   })}
+                  disabled
                 />
               </div>
               {errors.email && (
@@ -100,9 +115,10 @@ function ResetPass() {
                   placeholder="New Password"
                   {...register("password", {
                     required: "New password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Must be at least 6 characters",
+                    pattern: {
+                      value: /^(?=.*[A-Za-z])(?=.*\d).{6,}$/, // Example: min 6 chars, letters & numbers
+                      message:
+                        "Password must be at least 6 characters and include letters and numbers",
                     },
                   })}
                 />
@@ -152,11 +168,18 @@ function ResetPass() {
               )}
 
               {/* Submit Button */}
-              <button type="submit" className="btn btn-success w-100">
-                Reset Password
+              <button
+                type="submit"
+                className="btn btn-success w-100"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Spinner size="sm" color="light" />
+                ) : (
+                  "Reset Password"
+                )}
               </button>
 
-              {/* Optional login redirect */}
               <div className="text-end mt-3">
                 <Link to="/login" className="text-success text-decoration-none">
                   Back to login?

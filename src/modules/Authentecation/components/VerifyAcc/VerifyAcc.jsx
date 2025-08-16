@@ -1,20 +1,39 @@
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import logo from "../../../../assets/images/auth-logo.png"; // adjust if needed
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 
 function VerifyAcc() {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const defaultEmail = state?.email || "";
+
+  const [loading, setLoading] = useState(false);
+  const codeInputRef = useRef(null); // ✅ plain JSX
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+    setValue,
+  } = useForm({
+    defaultValues: {
+      email: defaultEmail,
+      code: "",
+    },
+  });
+
+  useEffect(() => {
+    if (defaultEmail) {
+      setValue("email", defaultEmail);
+      codeInputRef.current?.focus();
+    }
+  }, [defaultEmail, setValue]);
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
       const response = await axios.put(
         "https://upskilling-egypt.com:3006/api/v1/Users/verify",
@@ -28,10 +47,12 @@ function VerifyAcc() {
       toast.success("✅ Account verified successfully!");
       navigate("/login");
     } catch (err) {
-      console.error("Verification error:", err.response?.data);
+      console.error("Verification error:", err.response?.data || err);
       const errorMsg =
         err.response?.data?.message || "Something went wrong. Try again.";
       toast.error(errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,12 +64,14 @@ function VerifyAcc() {
             <div className="logo-container text-center">
               <img className="w-50" src={logo} alt="logo" />
             </div>
+
             <div className="title mb-4">
               <h4>Verify Account</h4>
               <p className="text-muted">
                 Enter your email and verification code
               </p>
             </div>
+
             <form onSubmit={handleSubmit(onSubmit)}>
               {/* Email */}
               <div className="input-group mb-3">
@@ -72,10 +95,10 @@ function VerifyAcc() {
                 <p className="text-danger">{errors.email.message}</p>
               )}
 
-              {/* Verification Code (OTP) */}
+              {/* Verification Code */}
               <div className="input-group mb-3">
                 <span className="input-group-text">
-                  <i className="fa fa-shield-alt" />
+                  <i className="fa fa-shield" />
                 </span>
                 <input
                   type="text"
@@ -84,10 +107,11 @@ function VerifyAcc() {
                   {...register("code", {
                     required: "Verification code is required",
                     minLength: {
-                      value: 4,
-                      message: "Code must be at least 4 digits",
+                      value: 6,
+                      message: "Code must be 6 digits",
                     },
                   })}
+                  ref={codeInputRef} // ✅ works now
                 />
               </div>
               {errors.code && (
@@ -95,8 +119,12 @@ function VerifyAcc() {
               )}
 
               {/* Submit Button */}
-              <button type="submit" className="btn btn-success w-100">
-                Verify Account
+              <button
+                type="submit"
+                className="btn btn-success w-100"
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify Account"}
               </button>
 
               {/* Back to Login */}
