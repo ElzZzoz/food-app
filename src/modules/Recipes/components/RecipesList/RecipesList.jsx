@@ -8,7 +8,7 @@
  * - Uses axios for API communication.
  */
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -19,9 +19,15 @@ import Header from "../../../Shared/components/Header/Header";
 import boyPhoto from "../../../../assets/images/BoyPhoto.png";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import { Modal, Spinner } from "react-bootstrap";
+import { Dropdown, Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEdit,
+  faEllipsisV,
+  // faEye,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+import Pagination from "react-bootstrap/Pagination";
 
 // Custom Components
 import DeleteConfirmation from "../../../Shared/components/DeleteConfirmation/DeleteConfirmation";
@@ -38,6 +44,11 @@ function RecipesList() {
   const [selectedRecipeId, setSelectedRecipeId] = useState(null); // currently selected recipe id
   const [tagsList, setTagsList] = useState([]); // tags dropdown list
   const [categoriesList, setCategoriesList] = useState([]); // categories dropdown list
+  const [currentPage, setCurrentPage] = useState(1); // current page for pagination
+  const [totalPages, setTotalPages] = useState(4); // total pages for pagination
+  const [searchQuery, setSearchQuery] = useState(""); // search query
+  const [tagId, setTagId] = useState(""); // tag id for filtering
+  const [categoryId, setCategoryId] = useState(""); // category id for filtering
 
   const navigate = useNavigate();
 
@@ -64,10 +75,19 @@ function RecipesList() {
 
   const handleCloseUpdate = () => setShowUpdateModal(false);
 
-  const handleShowUpdate = (id) => {
-    setSelectedRecipeId(id);
-    setShowUpdateModal(true);
-  };
+  //custom toggle
+  const CustomToggle = forwardRef(({ onClick }, ref) => (
+    <span
+      ref={ref}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(e);
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      <FontAwesomeIcon icon={faEllipsisV} />
+    </span>
+  ));
 
   // ============================
   // API Calls
@@ -76,7 +96,7 @@ function RecipesList() {
   /**
    * Fetch all recipes (with pagination by default: page 1, size 5).
    */
-  const fetchRecipes = async () => {
+  const fetchRecipes = async (page = 1) => {
     const token = localStorage.getItem("token");
     if (!token) return console.error("No token found in localStorage");
 
@@ -85,11 +105,26 @@ function RecipesList() {
       const res = await axios.get(
         "https://upskilling-egypt.com:3006/api/v1/Recipe",
         {
-          params: { pageSize: 5, pageNumber: 1 },
+          params: {
+            pageSize: 5,
+            pageNumber: page,
+            name: searchQuery || undefined,
+            tagId: tagId || undefined,
+            categoryId: categoryId || undefined,
+          },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setRecipes(res.data.data || []);
+
+      // 👇 check what field the API sends for total pages (e.g., totalNumberOfPages)
+      if (res.data.totalNumberOfPages) {
+        setTotalPages(res.data.totalNumberOfPages);
+      } else if (res.data.totalNumberOfRecords) {
+        // fallback: calculate manually
+        setTotalPages(Math.ceil(res.data.totalNumberOfRecords / 5));
+      }
     } catch (err) {
       console.error("Error fetching recipes:", err.response?.data || err);
     } finally {
@@ -113,6 +148,7 @@ function RecipesList() {
       );
       fetchRecipes(); // refresh list
       handleCloseDelete();
+      toast.success("Recipe deleted successfully!");
     } catch (error) {
       console.error(
         "Error deleting recipe:",
@@ -215,7 +251,7 @@ function RecipesList() {
     fetchRecipes();
     getAllTags();
     getAllCategories();
-  }, []);
+  }, [searchQuery, tagId, categoryId, currentPage]);
 
   // ============================
   // Render
@@ -231,6 +267,7 @@ function RecipesList() {
 
       {/* Section Title + Add Button */}
       <div className="container-fluid mb-4">
+        {/* Section Title + Add Button */}
         <div className="add-button-container d-flex flex-wrap justify-content-between align-items-center gap-3">
           <div>
             <h2 className="mb-1 fw-bold">Recipes Table Details</h2>
@@ -246,6 +283,52 @@ function RecipesList() {
             Add New Recipe
           </Button>
         </div>
+
+        {/* Filters Row */}
+        <div className="row my-3">
+          {/* Name filter */}
+          <div className="col-6">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Tag filter */}
+          <div className="col-3">
+            <select
+              className="form-control"
+              value={tagId}
+              onChange={(e) => setTagId(e.target.value)}
+            >
+              <option value="">-- Filter by Tag --</option>
+              {tagsList.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category filter */}
+          <div className="col-3">
+            <select
+              className="form-control"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">-- Filter by Category --</option>
+              {categoriesList.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Recipes Table */}
@@ -255,61 +338,132 @@ function RecipesList() {
         ) : recipes.length === 0 ? (
           <NoData message="No recipes found" />
         ) : (
-          <Table striped bordered hover responsive>
-            <thead className="no-border">
-              <tr>
-                <th>Name</th>
-                <th>Image</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Tag</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recipes.map(({ id, name, imagePath, price, tag, category }) => (
-                <tr key={id}>
-                  <td>{name}</td>
-                  <td>
-                    {imagePath ? (
-                      <img
-                        src={`https://upskilling-egypt.com:3006/${imagePath}`}
-                        alt={name}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      "No Image"
-                    )}
-                  </td>
-                  <td>{price}</td>
-                  <td>
-                    {category?.length > 0 ? category[0].name : "No Category"}
-                  </td>
-                  <td>{tag?.name || "No Tag"}</td>
-                  <td>
-                    <Button
-                      variant="warning"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleShowUpdate(id)}
-                    >
-                      Update
-                    </Button>
-                    <FontAwesomeIcon
-                      icon={faTrash}
-                      style={{ cursor: "pointer", color: "red" }}
-                      onClick={() => handleShowDelete(id)}
-                      title="Delete Recipe"
-                    />
-                  </td>
+          <div>
+            <Table striped bordered hover responsive>
+              <thead className="no-border">
+                <tr>
+                  <th>Name</th>
+                  <th>Image</th>
+                  <th>Price</th>
+                  <th>Category</th>
+                  <th>Tag</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {recipes.map(
+                  ({ id, name, imagePath, price, tag, category }) => (
+                    <tr key={id}>
+                      <td>{name}</td>
+                      <td>
+                        {imagePath ? (
+                          <img
+                            src={`https://upskilling-egypt.com:3006/${imagePath}`}
+                            alt={name}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          "No Image"
+                        )}
+                      </td>
+                      <td>{price}</td>
+                      <td>
+                        {category?.length > 0
+                          ? category[0].name
+                          : "No Category"}
+                      </td>
+                      <td>{tag?.name || "No Tag"}</td>
+                      <td>
+                        <Dropdown align="end">
+                          <Dropdown.Toggle
+                            as={CustomToggle}
+                            style={{ cursor: "pointer" }}
+                            id={`dropdown-${id}`}
+                          >
+                            <FontAwesomeIcon icon={faEllipsisV} />
+                          </Dropdown.Toggle>
+
+                          <Dropdown.Menu>
+                            {/* View */}
+                            {/* <Dropdown.Item
+                              onClick={() =>
+                                navigate(`/dashboard/recipes/${id}`)
+                              }
+                            >
+                              <FontAwesomeIcon icon={faEye} className="me-2" />
+                              View
+                            </Dropdown.Item> */}
+
+                            {/* Update */}
+                            <Dropdown.Item
+                              onClick={() =>
+                                navigate(`/dashboard/recipes-data/${id}`)
+                              }
+                            >
+                              <FontAwesomeIcon icon={faEdit} className="me-2" />
+                              Update
+                            </Dropdown.Item>
+
+                            {/* Delete */}
+                            <Dropdown.Item
+                              onClick={() => handleShowDelete(id)}
+                              className="text-danger"
+                            >
+                              <FontAwesomeIcon
+                                icon={faTrash}
+                                className="me-2"
+                              />
+                              Delete
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </Table>
+            {/* Pagination */}
+            <div className="d-flex justify-content-center mt-3">
+              <Pagination>
+                <Pagination.Prev
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage(currentPage - 1);
+                    fetchRecipes(currentPage - 1);
+                  }}
+                />
+                {Array(totalPages)
+                  .fill(null)
+                  .map((_, index) => {
+                    const page = index + 1;
+                    return (
+                      <Pagination.Item
+                        key={page}
+                        active={page === currentPage}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          fetchRecipes(page);
+                        }}
+                      >
+                        {page}
+                      </Pagination.Item>
+                    );
+                  })}
+                <Pagination.Next
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage(currentPage + 1);
+                    fetchRecipes(currentPage + 1);
+                  }}
+                />
+              </Pagination>
+            </div>
+          </div>
         )}
 
         {/* Delete Confirmation Modal */}

@@ -6,8 +6,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "react-toastify/dist/ReactToastify.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+
 import Login from "./modules/Authentecation/components/Login/Login";
 import ChangePass from "./modules/Authentecation/components/ChangePass/ChangePass";
 import ForgetPass from "./modules/Authentecation/components/ForgetPass/ForgetPass";
@@ -25,6 +30,7 @@ import MasterLayout from "./modules/Shared/components/MasterLayout/MasterLayout"
 import AuthLayout from "./modules/Shared/components/AuthLayout/AuthLayout";
 import CategoryData from "./modules/Categories/components/CategoryData/CategoryData";
 import ProtectedRoute from "./modules/Shared/components/ProtectedRoutes/ProtectedRoutes";
+import UsersData from "./modules/Users/components/Users-Data";
 
 function App() {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,8 +50,8 @@ function App() {
       localStorage.setItem("token_expiry", expiresIn);
 
       const decoded = jwtDecode(token);
-      setUserData(decoded); // full decoded user data
-      localStorage.setItem("userData", JSON.stringify(decoded)); // ✅ save in localStorage
+      setUserData(decoded);
+      localStorage.setItem("userData", JSON.stringify(decoded));
 
       setLoginSuccess(true);
       toast.success("🎉 Logged in successfully");
@@ -72,22 +78,13 @@ function App() {
   }, []);
 
   const routes = createBrowserRouter([
+    // ---------- PUBLIC ROUTES ----------
     {
       path: "",
       element: <AuthLayout />,
       errorElement: <NotFound />,
       children: [
-        {
-          index: true,
-          element: (
-            <Login
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              onLoginSubmit={handleLoginSubmit}
-              loginSuccess={loginSuccess}
-            />
-          ),
-        },
+        { index: true, element: <Navigate to="/login" replace /> }, // ✅ redirect root to /login
         {
           path: "login",
           element: (
@@ -106,9 +103,11 @@ function App() {
         { path: "change-password", element: <ChangePass /> },
       ],
     },
+
+    // ---------- PROTECTED ROUTES ----------
     {
       path: "dashboard",
-      element: <ProtectedRoute />,
+      element: <ProtectedRoute />, // ✅ Protects everything inside
       errorElement: <NotFound />,
       children: [
         {
@@ -119,8 +118,13 @@ function App() {
             { path: "category-data", element: <CategoryData /> },
             { path: "recipes", element: <RecipesList /> },
             { path: "recipes-data", element: <RecipesData /> },
+            {
+              path: "recipes-data/:id",
+              element: <RecipesData mode="update" />,
+            },
             { path: "favourites", element: <FavList /> },
             { path: "users", element: <UsersList userData={userData} /> },
+            { path: "users/:id", element: <UsersData /> },
           ],
         },
       ],

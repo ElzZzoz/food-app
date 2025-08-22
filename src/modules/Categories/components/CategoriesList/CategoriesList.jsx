@@ -6,6 +6,7 @@
  *  - Add a new category
  *  - Update an existing category
  *  - Delete a category
+ *  - Pagination support
  *
  * Features:
  *  - Uses `react-bootstrap` for UI components
@@ -27,6 +28,7 @@ import Button from "react-bootstrap/Button";
 import { Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import Pagination from "react-bootstrap/Pagination";
 
 // Custom components
 import NoData from "../../../Shared/components/NoData/NoData";
@@ -35,21 +37,23 @@ import DeleteConfirmation from "../../../Shared/components/DeleteConfirmation/De
 function CategoriesList() {
   /** ---------------------- State Management ---------------------- */
 
-  // Categories data
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Selected category for update/delete
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
-  // Delete modal state
   const [showDelete, setShowDelete] = useState(false);
-
-  // Add modal state
   const [showAdd, setShowAdd] = useState(false);
-
-  // Update modal state
   const [showUpdate, setShowUpdate] = useState(false);
+
+  // Pagination states
+  const [pageNumber, setPageNumber] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // State for search
+  const [searchQuery, setSearchQuery] = useState("");
+
+  /** ---------------------- Form Validation ---------------------- */
 
   // React Hook Form setup
   const {
@@ -61,8 +65,6 @@ function CategoriesList() {
   } = useForm();
 
   /** ---------------------- Modal Handlers ---------------------- */
-
-  // Delete modal
   const handleCloseDelete = () => {
     setShowDelete(false);
     setSelectedCategoryId(null);
@@ -72,14 +74,12 @@ function CategoriesList() {
     setShowDelete(true);
   };
 
-  // Add modal
   const handleCloseAdd = () => {
     setShowAdd(false);
     reset();
   };
   const handleShowAdd = () => setShowAdd(true);
 
-  // Update modal
   const handleCloseUpdate = () => {
     setShowUpdate(false);
     setSelectedCategoryId(null);
@@ -87,13 +87,11 @@ function CategoriesList() {
   };
   const handleShowUpdate = (category) => {
     setSelectedCategoryId(category.id);
-    setValue("name", category.name); // Prefill form
+    setValue("name", category.name);
     setShowUpdate(true);
   };
 
   /** ---------------------- API Calls ---------------------- */
-
-  // Fetch categories
   const fetchCategories = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -108,11 +106,12 @@ function CategoriesList() {
       const res = await axios.get(
         "https://upskilling-egypt.com:3006/api/v1/Category/",
         {
-          params: { pageSize: 5, pageNumber: 1 },
+          params: { pageSize: 5, pageNumber, name: searchQuery || undefined },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       setCategories(res.data.data || []);
+      setTotalPages(res.data.totalNumberOfPages || 1);
     } catch (err) {
       console.error("Error fetching categories:", err.response?.data || err);
       toast.error("Failed to load categories");
@@ -121,7 +120,6 @@ function CategoriesList() {
     }
   };
 
-  // Delete category
   const handleDelete = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -139,7 +137,6 @@ function CategoriesList() {
     }
   };
 
-  // Add category
   const onSubmitAdd = async (data) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -164,7 +161,6 @@ function CategoriesList() {
     }
   };
 
-  // Update category
   const onSubmitUpdate = async (data) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -192,7 +188,15 @@ function CategoriesList() {
   /** ---------------------- Lifecycle ---------------------- */
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [pageNumber]); // refetch on page change
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchCategories();
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [searchQuery, pageNumber]);
 
   /** ---------------------- Render ---------------------- */
   return (
@@ -222,6 +226,13 @@ function CategoriesList() {
           >
             Add New Category
           </Button>
+          <input
+            type="text"
+            className="form-control my-2"
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
@@ -232,47 +243,64 @@ function CategoriesList() {
         ) : categories.length === 0 ? (
           <NoData message="No categories found" />
         ) : (
-          <Table striped bordered hover responsive>
-            <thead className="no-border">
-              <tr>
-                <th>Name</th>
-                <th>Creation Date</th>
-                <th>Modification Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td>{category.name}</td>
-                  <td>{new Date(category.creationDate).toLocaleString()}</td>
-                  <td>
-                    {new Date(category.modificationDate).toLocaleString()}
-                  </td>
-                  <td>
-                    <Button
-                      variant="warning"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => handleShowUpdate(category)}
-                    >
-                      Update
-                    </Button>
-                    <FontAwesomeIcon
-                      icon={faTrash}
-                      style={{ cursor: "pointer", color: "red" }}
-                      onClick={() => handleShowDelete(category.id)}
-                      title="Delete Category"
-                    />
-                  </td>
+          <>
+            <Table striped bordered hover responsive>
+              <thead className="no-border">
+                <tr>
+                  <th>Name</th>
+                  <th>Creation Date</th>
+                  <th>Modification Date</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
+                  <tr key={category.id}>
+                    <td>{category.name}</td>
+                    <td>{new Date(category.creationDate).toLocaleString()}</td>
+                    <td>
+                      {new Date(category.modificationDate).toLocaleString()}
+                    </td>
+                    <td>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleShowUpdate(category)}
+                      >
+                        Update
+                      </Button>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        style={{ cursor: "pointer", color: "red" }}
+                        onClick={() => handleShowDelete(category.id)}
+                        title="Delete Category"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            {/* Pagination */}
+            <div className="d-flex justify-content-center mt-3">
+              <Pagination>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === pageNumber}
+                    onClick={() => setPageNumber(index + 1)}
+                  >
+                    {index + 1}
+                  </Pagination.Item>
+                ))}
+              </Pagination>
+            </div>
+          </>
         )}
       </div>
 
-      {/* ---------------------- Delete Modal ---------------------- */}
+      {/* Delete Modal */}
       <Modal show={showDelete} onHide={handleCloseDelete} centered>
         <Modal.Header closeButton />
         <Modal.Body>
@@ -285,7 +313,7 @@ function CategoriesList() {
         </Modal.Footer>
       </Modal>
 
-      {/* ---------------------- Add Modal ---------------------- */}
+      {/* Add Modal */}
       <Modal show={showAdd} onHide={handleCloseAdd} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add Category</Modal.Title>
@@ -303,7 +331,6 @@ function CategoriesList() {
             {errors.name && (
               <span className="text-danger">{errors.name.message}</span>
             )}
-
             <div className="d-flex justify-content-end mt-3">
               <Button
                 variant="secondary"
@@ -320,7 +347,7 @@ function CategoriesList() {
         </Modal.Body>
       </Modal>
 
-      {/* ---------------------- Update Modal ---------------------- */}
+      {/* Update Modal */}
       <Modal show={showUpdate} onHide={handleCloseUpdate} centered>
         <Modal.Header closeButton>
           <Modal.Title>Update Category</Modal.Title>
@@ -338,7 +365,6 @@ function CategoriesList() {
             {errors.name && (
               <span className="text-danger">{errors.name.message}</span>
             )}
-
             <div className="d-flex justify-content-end mt-3">
               <Button
                 variant="secondary"

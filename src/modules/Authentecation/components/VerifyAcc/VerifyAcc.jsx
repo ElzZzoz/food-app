@@ -1,9 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+/**
+ * VerifyAcc Component
+ * -------------------
+ * Handles user account verification by submitting the email and verification code.
+ * - Uses react-hook-form for form validation & handling
+ * - Auto-fills the email if passed from previous step (via `useLocation`)
+ * - Automatically focuses the verification code input on load
+ * - Submits data to the backend API with axios
+ * - Provides success/error feedback using react-toastify
+ */
+
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import logo from "../../../../assets/images/auth-logo.png"; // adjust if needed
+import logo from "../../../../assets/images/auth-logo.png"; // Adjust path if needed
 
 function VerifyAcc() {
   const navigate = useNavigate();
@@ -11,13 +22,18 @@ function VerifyAcc() {
   const defaultEmail = state?.email || "";
 
   const [loading, setLoading] = useState(false);
-  const codeInputRef = useRef(null); // ✅ plain JSX
 
+  /**
+   * React Hook Form setup
+   * - `defaultValues`: pre-fill email if passed from register step
+   * - `setFocus`: used to auto-focus on the "code" input field
+   */
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    setFocus,
   } = useForm({
     defaultValues: {
       email: defaultEmail,
@@ -25,13 +41,23 @@ function VerifyAcc() {
     },
   });
 
+  /**
+   * If an email is passed from the previous step,
+   * set it in the form and focus the verification code input
+   */
   useEffect(() => {
     if (defaultEmail) {
       setValue("email", defaultEmail);
-      codeInputRef.current?.focus();
+      setFocus("code"); // ✅ Auto-focus code input
     }
-  }, [defaultEmail, setValue]);
+  }, [defaultEmail, setValue, setFocus]);
 
+  /**
+   * Submit handler
+   * - Sends verification request to API
+   * - On success: notify user & redirect to login
+   * - On failure: show error message
+   */
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -61,10 +87,12 @@ function VerifyAcc() {
       <div className="container-fluid bg-overlay">
         <div className="row vh-100 justify-content-center align-items-center">
           <div className="col-md-5 rounded-3 bg-white px-5 py-5">
+            {/* Logo */}
             <div className="logo-container text-center">
               <img className="w-50" src={logo} alt="logo" />
             </div>
 
+            {/* Title */}
             <div className="title mb-4">
               <h4>Verify Account</h4>
               <p className="text-muted">
@@ -72,8 +100,9 @@ function VerifyAcc() {
               </p>
             </div>
 
+            {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)}>
-              {/* Email */}
+              {/* Email Input */}
               <div className="input-group mb-3">
                 <span className="input-group-text">
                   <i className="fa fa-envelope" />
@@ -95,7 +124,7 @@ function VerifyAcc() {
                 <p className="text-danger">{errors.email.message}</p>
               )}
 
-              {/* Verification Code */}
+              {/* Verification Code Input */}
               <div className="input-group mb-3">
                 <span className="input-group-text">
                   <i className="fa fa-shield" />
@@ -106,12 +135,11 @@ function VerifyAcc() {
                   placeholder="Enter the verification code"
                   {...register("code", {
                     required: "Verification code is required",
-                    minLength: {
-                      value: 6,
-                      message: "Code must be 6 digits",
+                    maxLength: {
+                      value: 4,
+                      message: "Code must be 4 digits",
                     },
                   })}
-                  ref={codeInputRef} // ✅ works now
                 />
               </div>
               {errors.code && (
@@ -127,7 +155,7 @@ function VerifyAcc() {
                 {loading ? "Verifying..." : "Verify Account"}
               </button>
 
-              {/* Back to Login */}
+              {/* Back to Login Link */}
               <div className="text-end mt-3">
                 <Link to="/login" className="text-success text-decoration-none">
                   Back to login?

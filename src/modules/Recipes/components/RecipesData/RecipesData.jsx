@@ -2,21 +2,52 @@ import Header from "../../../Shared/components/Header/Header";
 import boyPhoto from "../../../../assets/images/BoyPhoto.png";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import FileUploader from "../../../Shared/components/FileUploader/FileUploader"; // adjust path
 
-function RecipesData() {
-  const [tagsList, setTagsList] = useState([]);
-  const [categoriesList, setCategoriesList] = useState([]);
+/**
+ * RecipesData Component
+ * ----------------------
+ * Handles both creating and updating recipes.
+ *
+ * Modes:
+ * - "create" → POST new recipe
+ * - "update" → PUT existing recipe (prefilled form with data)
+ *
+ * Props:
+ * - mode (string): "create" or "update"
+ */
+function RecipesData({ mode }) {
+  // ----------------------------
+  // State
+  // ----------------------------
+  const [tagsList, setTagsList] = useState([]); // All available tags
+  const [categoriesList, setCategoriesList] = useState([]); // All available categories
+  const { id } = useParams(); // Recipe ID for update mode
   const navigate = useNavigate();
 
-  let {
+  // ----------------------------
+  // 👇 Handle file selection from FileUploader
+  const handleFileSelect = (file) => {
+    setValue("recipeImage", file, { shouldValidate: true }); // update react-hook-form
+  };
+
+  //----------------------------
+  // Form Hook
+  // ----------------------------
+  const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    control,
   } = useForm();
 
+  /**
+   * Helper: Build FormData object for submission.
+   */
   function appendToFormData(data) {
     const formData = new FormData();
     formData.append("name", data.name);
@@ -24,121 +55,152 @@ function RecipesData() {
     formData.append("description", data.description);
     formData.append("categoriesIds", data.categoriesIds);
     formData.append("tagId", data.tagId);
-    formData.append("recipeImage", data.recipeImage[0]);
+
+    // Attach image if provided
+    // Attach image if provided
+    if (data.recipeImage) {
+      formData.append("recipeImage", data.recipeImage);
+    }
+
     return formData;
   }
 
-  const onSubmit = async (data) => {
-    let recipeData = appendToFormData(data);
+  // ----------------------------
+  // API Calls
+  // ----------------------------
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found in localStorage");
-        return;
-      }
-
-      let res = await axios.post(
-        "https://upskilling-egypt.com:3006/api/v1/Recipe/",
-        recipeData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      console.log("API Response:", res.data);
-
-      // ✅ Show success toast
-      toast.success(res.data.message || "Recipe created successfully!");
-
-      // ✅ Navigate after a short delay so user can see the toast
-      setTimeout(() => {
-        navigate("/dashboard/recipes");
-      }, 1500);
-    } catch (err) {
-      console.error(
-        "Error creating recipe:",
-        err.response?.data || err.message
-      );
-
-      // ❌ Show error toast
-      toast.error(err.response?.data?.message || "Something went wrong");
-    }
-  };
-
+  /**
+   * Fetch all categories (with pagination).
+   */
   const getAllCategories = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found in localStorage");
-        return;
-      }
+      if (!token) return console.error("No token found in localStorage");
 
       const res = await axios.get(
         "https://upskilling-egypt.com:3006/api/v1/Category/",
         {
-          // If you want pagination
           params: { pageSize: 5, pageNumber: 1 },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      console.log("API Response:", res.data);
-      setCategoriesList(res.data.data);
-      // Destructure and default
+      setCategoriesList(res.data.data || []);
     } catch (err) {
       console.error(
-        "Error fetching recipes:",
+        "Error fetching categories:",
         err.response?.data || err.message
       );
     }
   };
 
+  /**
+   * Fetch all tags.
+   */
   const getAllTags = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found in localStorage");
-        return;
-      }
+      if (!token) return console.error("No token found in localStorage");
 
       const res = await axios.get(
         "https://upskilling-egypt.com:3006/api/v1/tag/",
         {
-          // If you want pagination
-          // params: { pageSize: 5, pageNumber: 1 },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      console.log("API Response:", res.data);
-      setTagsList(res.data);
+      setTagsList(res.data || []);
+    } catch (err) {
+      console.error("Error fetching tags:", err.response?.data || err.message);
+    }
+  };
+
+  /**
+   * Fetch recipe details by ID (for update mode).
+   */
+  const getRecipeDetails = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `https://upskilling-egypt.com:3006/api/v1/Recipe/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const recipe = res.data;
+
+      // Prefill form with recipe data
+      setValue("name", recipe.name);
+      setValue("description", recipe.description);
+      setValue("price", recipe.price);
+      setValue("tagId", recipe.tag.id);
+      setValue("categoriesIds", recipe.categories[0]?.id || "0");
     } catch (err) {
       console.error(
-        "Error fetching recipes:",
+        "Error fetching recipe details:",
         err.response?.data || err.message
       );
     }
   };
 
+  // ----------------------------
+  // Submit Handler
+  // ----------------------------
+  const onSubmit = async (data) => {
+    const formData = appendToFormData(data);
+    const token = localStorage.getItem("token");
+
+    try {
+      let res;
+      if (mode === "update") {
+        // Update existing recipe
+        res = await axios.put(
+          `https://upskilling-egypt.com:3006/api/v1/Recipe/${id}`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Recipe updated successfully!");
+      } else {
+        // Create new recipe
+        res = await axios.post(
+          "https://upskilling-egypt.com:3006/api/v1/Recipe/",
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Recipe created successfully!");
+      }
+
+      navigate("/dashboard/recipes"); // Redirect after success
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Something went wrong");
+    }
+  };
+
+  // ----------------------------
+  // Lifecycle
+  // ----------------------------
   useEffect(() => {
     getAllCategories();
     getAllTags();
-  }, []);
 
-  // console.log("Recipes Data:", recipes);
-  console.log("Categories List:", categoriesList);
-  console.log("Tags List:", tagsList);
+    // Fetch recipe details if in update mode
+    if (mode === "update" && id) {
+      getRecipeDetails(id);
+    }
+  }, [id, mode]);
 
+  // ----------------------------
+  // Render
+  // ----------------------------
   return (
     <>
       <Header
         imgPath={boyPhoto}
-        title={"Recipe items!"}
-        desc={
-          "You can now add your items that any user can order it from the Application and you can edit"
-        }
+        title={`${mode === "update" ? "Update" : "Add"} Recipe`}
+        desc={`You can now ${
+          mode === "update" ? "update" : "add"
+        } your items that any user can order from the Application.`}
       />
+
       <form className="container my-5 p-5" onSubmit={handleSubmit(onSubmit)}>
         {/* Recipe Name */}
         <input
@@ -150,8 +212,7 @@ function RecipesData() {
         {errors.name && (
           <span className="text-danger">{errors.name.message}</span>
         )}
-
-        {/* Tags Select */}
+        {/* Tags */}
         <select
           className="form-control my-2"
           defaultValue=""
@@ -169,7 +230,6 @@ function RecipesData() {
         {errors.tagId && (
           <span className="text-danger">{errors.tagId.message}</span>
         )}
-
         {/* Description */}
         <textarea
           className="form-control my-2"
@@ -179,8 +239,7 @@ function RecipesData() {
         {errors.description && (
           <span className="text-danger">{errors.description.message}</span>
         )}
-
-        {/* Price Input */}
+        {/* Price */}
         <input
           {...register("price", { required: "Price is required" })}
           type="number"
@@ -191,8 +250,7 @@ function RecipesData() {
         {errors.price && (
           <span className="text-danger">{errors.price.message}</span>
         )}
-
-        {/* Categories Select */}
+        {/* Categories */}
         <select
           className="form-control my-2"
           defaultValue=""
@@ -211,21 +269,23 @@ function RecipesData() {
         {errors.categoriesIds && (
           <span className="text-danger">{errors.categoriesIds.message}</span>
         )}
-
         {/* Image Upload */}
-        <input
-          {...register("recipeImage", { required: "Image is required" })}
-          type="file"
-          className="form-control my-2"
-        />
-        {errors.recipeImage && (
-          <span className="text-danger">{errors.recipeImage.message}</span>
-        )}
 
-        {/* Buttons */}
+        <Controller
+          name="recipeImage"
+          control={control}
+          rules={{ required: "Image is required" }}
+          render={({ field, fieldState }) => (
+            <FileUploader
+              onFileSelect={(file) => field.onChange(file)} // pass file to RHF
+              error={fieldState.error}
+            />
+          )}
+        />
+        {/* Action Buttons */}
         <div className="btns d-flex justify-content-end my-2">
           <button type="submit" className="btn btn-success mx-2">
-            Save
+            {mode === "update" ? "Update" : "Save"}
           </button>
           <button
             type="button"
