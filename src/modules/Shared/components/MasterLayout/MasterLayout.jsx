@@ -1,4 +1,4 @@
-import SideBar from "../SideBar/SideBar";
+import SideBar from "../Sidebar/Sidebar"; // if the folder is "Sidebar"
 import Navbar from "../Navbar/Navbar";
 import Header from "../Header/Header";
 import { Outlet, useNavigate } from "react-router-dom";
