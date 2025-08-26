@@ -305,9 +305,7 @@ function CategoriesList() {
 
                           {/* Update */}
                           <Dropdown.Item
-                            onClick={() =>
-                              navigate(`/dashboard/recipes-data/${category.id}`)
-                            }
+                            onClick={() => handleShowUpdate(category)}
                           >
                             <FontAwesomeIcon icon={faEdit} className="me-2" />
                             Update

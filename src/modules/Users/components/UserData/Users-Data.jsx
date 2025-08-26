@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Spinner, Card, Badge, Button } from "react-bootstrap";
-import { usersApi } from "../../../services/urls/urls";
+import { usersApi } from "../../../../services/urls/urls";
 import { faArrowLeft, faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 

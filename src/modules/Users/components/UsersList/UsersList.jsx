@@ -58,10 +58,10 @@ function UsersList() {
   const [appliedFilters, setAppliedFilters] = useState({});
 
   // Debounced values
-  // const debouncedUserName = useDebounce(userName);
-  // const debouncedEmail = useDebounce(email);
-  // const debouncedCountry = useDebounce(country);
-  // const debouncedGroupId = useDebounce(groupId);
+  const debouncedUserName = useDebounce(searchUserName);
+  const debouncedEmail = useDebounce(searchEmail);
+  const debouncedCountry = useDebounce(searchCountry);
+  const debouncedGroupId = useDebounce(groupId);
 
   const navigate = useNavigate();
 
@@ -289,8 +289,18 @@ function UsersList() {
   // ============================
 
   useEffect(() => {
+    setAppliedFilters({
+      userName: debouncedUserName || undefined,
+      email: debouncedEmail || undefined,
+      country: debouncedCountry || undefined,
+      groups: debouncedGroupId || undefined,
+    });
+    setPageNumber(1); // reset to first page when filters change
+  }, [debouncedUserName, debouncedEmail, debouncedCountry, debouncedGroupId]);
+
+  useEffect(() => {
     fetchUsers();
-  }, [pageNumber, pageSize, appliedFilters]);
+  }, [pageNumber, appliedFilters]);
 
   useEffect(() => {
     getAllGroups();
@@ -330,13 +340,6 @@ function UsersList() {
               needed.
             </p>
           </div>
-          <Button
-            variant="primary"
-            className="bg-success fw-semibold"
-            onClick={() => navigate("/dashboard/users-data")}
-          >
-            Add New User
-          </Button>
         </div>
 
         {/* Filters */}
@@ -376,23 +379,6 @@ function UsersList() {
               <option value="1">Admin</option>
               <option value="2">System User</option>
             </select>
-          </div>
-          <div className="text-center mt-2">
-            <Button
-              variant="primary"
-              className="bg-success fw-semibold"
-              onClick={() => {
-                setAppliedFilters({
-                  userName: searchUserName || undefined,
-
-                  country: searchCountry || undefined,
-                  groups: groupId || undefined,
-                });
-                setPageNumber(1); // reset to first page whenever you search
-              }}
-            >
-              Search
-            </Button>
           </div>
         </div>
       </div>

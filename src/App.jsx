@@ -26,7 +26,7 @@ import MasterLayout from "./modules/Shared/components/MasterLayout/MasterLayout"
 import AuthLayout from "./modules/Shared/components/AuthLayout/AuthLayout";
 import CategoryData from "./modules/Categories/components/CategoryData/CategoryData";
 import ProtectedRoute from "./modules/Shared/components/ProtectedRoutes/ProtectedRoutes";
-import UsersData from "./modules/Users/components/Users-Data";
+import UsersData from "./modules/Users/components/UserData/Users-Data";
 import { useAuth } from "./context/useAuth";
 
 function App() {
@@ -94,6 +94,7 @@ function App() {
               children: [
                 { index: true, element: <UsersList /> },
                 { path: ":id", element: <UsersData /> },
+                { path: "users-data", element: <UsersData /> },
               ],
             },
           ],
