@@ -1,4 +1,4 @@
-import SideBar from "../Sidebar/Sidebar"; // if the folder is "Sidebar"
+import Sidebar from "../Sidebar/Sidebar"; // if the folder is "Sidebar"
 import Navbar from "../Navbar/Navbar";
 import Header from "../Header/Header";
 import { Outlet, useNavigate } from "react-router-dom";
@@ -16,7 +16,7 @@ function MasterLayout() {
     <>
       <div className="d-flex vh-100 overflow-hidden">
         <div className="bg-light">
-          <SideBar userData={userData} onLogout={handleLogout} />
+          <Sidebar userData={userData} onLogout={handleLogout} />
         </div>
         <div className="w-100 text-white d-flex flex-column">
           <Navbar userData={userData} />
