@@ -31,8 +31,10 @@ import { faEllipsisV, faEye } from "@fortawesome/free-solid-svg-icons";
 // Custom Components
 import DeleteConfirmation from "../../../Shared/components/DeleteConfirmation/DeleteConfirmation";
 import NoData from "../../../Shared/components/NoData/NoData";
+// import { useAuth } from "../../../../context/useAuth";
 
 function UsersList() {
+  // const { userData } = useAuth();
   // ============================
   // State Management
   // ============================

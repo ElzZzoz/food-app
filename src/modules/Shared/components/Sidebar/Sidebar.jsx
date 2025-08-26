@@ -2,9 +2,15 @@ import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
 import logo from "../../../../assets/images/sidebarIcon.png";
 import { useState } from "react";
+import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons"; // ✅ logout icon
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAuth } from "../../../../context/useAuth";
+import ChangePasswordModal from "../../../Authentecation/components/ChangePass/ChangePass";
 
-function SideBar({ onLogout }) {
+function SideBar() {
+  const { logout, userData } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const toggleSidebar = () => {
     setIsCollapsed((prev) => !prev);
   };
@@ -24,24 +30,43 @@ function SideBar({ onLogout }) {
             <i className="fa fa-home me-2" /> Home
           </MenuItem>
 
-          <MenuItem component={<Link to="users" />}>
-            <i className="fa fa-users me-2" /> Users
-          </MenuItem>
+          {userData?.userGroup === "SuperAdmin" && (
+            <MenuItem component={<Link to="users" />}>
+              <i className="fa fa-users me-2" /> Users
+            </MenuItem>
+          )}
 
           <MenuItem component={<Link to="recipes" />}>
             <i className="fa fa-utensils me-2" /> Recipes
           </MenuItem>
 
-          <MenuItem component={<Link to="categories" />}>
-            <i className="fa fa-list-alt me-2" /> Categories
+          {/* ⭐ New Favorites item */}
+          {userData?.userGroup != "SuperAdmin" && (
+            <MenuItem component={<Link to="favourites" />}>
+              <i className="fa fa-star me-2" /> Favorites
+            </MenuItem>
+          )}
+
+          {userData?.userGroup === "SuperAdmin" && (
+            <MenuItem component={<Link to="categories" />}>
+              <i className="fa fa-list-alt me-2" /> Categories
+            </MenuItem>
+          )}
+
+          <MenuItem onClick={() => setShowChangePassword(true)}>
+            <i className="fa fa-key me-2" /> Change Password
           </MenuItem>
 
-          {/* <MenuItem>
-            <i className="fa fa-key me-2" /> Change Password
-          </MenuItem> */}
+          <ChangePasswordModal
+            show={showChangePassword}
+            onHide={() => setShowChangePassword(false)}
+          />
 
-          <MenuItem onClick={onLogout}>
-            <i className="fa fa-sign-out-alt me-2" /> Log Out
+          <MenuItem
+            icon={<FontAwesomeIcon icon={faRightFromBracket} />}
+            onClick={logout}
+          >
+            Logout
           </MenuItem>
         </Menu>
       </Sidebar>

@@ -27,6 +27,7 @@ function RecipesData({ mode }) {
   const [categoriesList, setCategoriesList] = useState([]); // All available categories
   const { id } = useParams(); // Recipe ID for update mode
   const navigate = useNavigate();
+  const [recipe, setRecipe] = useState(null); // Store recipe details for update/view mode
 
   // ----------------------------
   // 👇 Handle file selection from FileUploader
@@ -126,14 +127,16 @@ function RecipesData({ mode }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const recipe = res.data;
+      const recipeData = res.data;
+      setRecipe(recipeData);
 
       // Prefill form with recipe data
-      setValue("name", recipe.name);
-      setValue("description", recipe.description);
-      setValue("price", recipe.price);
-      setValue("tagId", recipe.tag.id);
-      setValue("categoriesIds", recipe.categories[0]?.id || "0");
+      setValue("name", recipeData.name);
+      setValue("description", recipeData.description);
+      setValue("price", recipeData.price);
+      setValue("tagId", recipeData.tag?.id || "");
+      setValue("categoriesIds", recipeData.categories?.[0]?.id || "");
+      // no second setValue here!
     } catch (err) {
       console.error(
         "Error fetching recipe details:",
@@ -183,10 +186,12 @@ function RecipesData({ mode }) {
     getAllTags();
 
     // Fetch recipe details if in update mode
-    if (mode === "update" && id) {
+    if ((mode === "update" || mode === "view") && id) {
       getRecipeDetails(id);
     }
   }, [id, mode]);
+
+  const isView = mode === "view";
 
   // ----------------------------
   // Render
@@ -195,28 +200,37 @@ function RecipesData({ mode }) {
     <>
       <Header
         imgPath={boyPhoto}
-        title={`${mode === "update" ? "Update" : "Add"} Recipe`}
-        desc={`You can now ${
-          mode === "update" ? "update" : "add"
-        } your items that any user can order from the Application.`}
+        title={
+          mode === "update"
+            ? "Update Recipe"
+            : mode === "view"
+            ? "View Recipe"
+            : "Add Recipe"
+        }
+        desc={
+          mode === "update"
+            ? "You can now update your items that users can order."
+            : mode === "view"
+            ? "Here you can view recipe details."
+            : "You can now add new items for users to order."
+        }
       />
 
       <form className="container my-5 p-5" onSubmit={handleSubmit(onSubmit)}>
         {/* Recipe Name */}
         <input
-          {...register("name", { required: "Recipe name is required" })}
+          {...register("name")}
           type="text"
           className="form-control my-2"
           placeholder="Recipe Name"
+          disabled={mode === "view"}
         />
-        {errors.name && (
-          <span className="text-danger">{errors.name.message}</span>
-        )}
-        {/* Tags */}
+
+        {/* Tag */}
         <select
           className="form-control my-2"
-          defaultValue=""
-          {...register("tagId", { required: "Tag is required" })}
+          {...register("tagId")}
+          disabled={mode === "view"}
         >
           <option value="" disabled>
             -- Select Tag --
@@ -227,74 +241,69 @@ function RecipesData({ mode }) {
             </option>
           ))}
         </select>
-        {errors.tagId && (
-          <span className="text-danger">{errors.tagId.message}</span>
-        )}
+
         {/* Description */}
         <textarea
           className="form-control my-2"
+          {...register("description")}
           placeholder="Recipe Description"
-          {...register("description", { required: "Description is required" })}
+          disabled={mode === "view"}
         ></textarea>
-        {errors.description && (
-          <span className="text-danger">{errors.description.message}</span>
-        )}
+
         {/* Price */}
         <input
-          {...register("price", { required: "Price is required" })}
+          {...register("price")}
           type="number"
           className="form-control my-2"
           placeholder="Recipe Price"
-          min="0"
+          disabled={mode === "view"}
         />
-        {errors.price && (
-          <span className="text-danger">{errors.price.message}</span>
-        )}
-        {/* Categories */}
+
+        {/* Category */}
         <select
           className="form-control my-2"
-          defaultValue=""
-          {...register("categoriesIds", { required: "Category is required" })}
+          {...register("categoriesIds")}
+          disabled={mode === "view"}
         >
           <option value="" disabled>
             -- Select Category --
           </option>
-          <option value="0">No Category</option>
           {categoriesList.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
             </option>
           ))}
         </select>
-        {errors.categoriesIds && (
-          <span className="text-danger">{errors.categoriesIds.message}</span>
-        )}
-        {/* Image Upload */}
 
+        {/* File Uploader */}
         <Controller
           name="recipeImage"
           control={control}
-          rules={{ required: "Image is required" }}
-          render={({ field, fieldState }) => (
+          render={({ field }) => (
             <FileUploader
-              onFileSelect={(file) => field.onChange(file)} // pass file to RHF
-              error={fieldState.error}
+              onFileSelect={(file) => field.onChange(file)}
+              disabled={mode === "view"}
+              value={recipe?.imagePath || ""}
+              mode={mode}
             />
           )}
         />
-        {/* Action Buttons */}
-        <div className="btns d-flex justify-content-end my-2">
-          <button type="submit" className="btn btn-success mx-2">
-            {mode === "update" ? "Update" : "Save"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-outline-danger mx-2"
-            onClick={() => navigate("/dashboard/recipes")}
-          >
-            Cancel
-          </button>
-        </div>
+
+        {/* Only show buttons if NOT in view mode */}
+        {mode !== "view" && (
+          <div className="btns d-flex justify-content-end my-2">
+            <button type="submit" className="btn btn-success mx-2">
+              {mode === "update" ? "Update" : "Save"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-danger mx-2"
+              onClick={() => navigate("/dashboard/recipes")}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </form>
     </>
   );

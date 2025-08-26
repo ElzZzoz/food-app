@@ -2,8 +2,10 @@ import SideBar from "../SideBar/SideBar";
 import Navbar from "../Navbar/Navbar";
 import Header from "../Header/Header";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../context/useAuth";
 
-function MasterLayout({ userData }) {
+function MasterLayout() {
+  const { userData } = useAuth();
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("token");

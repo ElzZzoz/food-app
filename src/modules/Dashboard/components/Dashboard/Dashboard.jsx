@@ -1,7 +1,9 @@
 import Header from "../../../Shared/components/Header/Header";
 import boyPhoto from "../../../../assets/images/BoyPhoto.png";
+import { useAuth } from "../../../../context/useAuth";
 
-function Dashboard({ userData }) {
+function Dashboard() {
+  const { userData } = useAuth();
   return (
     <>
       <Header

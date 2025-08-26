@@ -1,19 +1,69 @@
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Box, Typography } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
-export default function FileUploader({ onFileSelect, error }) {
+export default function FileUploader({
+  onFileSelect,
+  error,
+  value,
+  mode = "create",
+}) {
+  const [preview, setPreview] = useState("");
+
   const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
     accept: { "image/*": [] },
     multiple: false,
+    disabled: mode === "view",
     onDrop: (files) => {
       if (files.length > 0) {
-        onFileSelect(files[0]); // ✅ send file to form
+        onFileSelect(files[0]);
       }
     },
   });
 
+  console.log("Uploader value:", value);
+
+  useEffect(() => {
+    if (!value) {
+      setPreview("");
+      return;
+    }
+
+    let fileUrl;
+
+    if (typeof value === "string") {
+      setPreview(`https://upskilling-egypt.com:3006/${value}`);
+    } else if (value instanceof File) {
+      fileUrl = URL.createObjectURL(value);
+      setPreview(fileUrl);
+    }
+
+    // cleanup only if File
+    return () => {
+      if (fileUrl) URL.revokeObjectURL(fileUrl);
+    };
+  }, [value]);
+
+  // VIEW MODE → show only image
+  if (mode === "view") {
+    return (
+      <Box sx={{ my: 2, textAlign: "center" }}>
+        {preview ? (
+          <img
+            src={preview}
+            alt="Recipe"
+            style={{ width: "150px", height: "150px", objectFit: "cover" }}
+          />
+        ) : (
+          <Typography variant="body2">No image available</Typography>
+        )}
+      </Box>
+    );
+  }
+
+  // CREATE / UPDATE MODE → uploader
   return (
     <Box
       {...getRootProps()}
@@ -28,15 +78,12 @@ export default function FileUploader({ onFileSelect, error }) {
         "&:hover": { opacity: 0.9 },
       }}
     >
-      {/* hidden input */}
       <input {...getInputProps()} />
 
-      {/* Custom Icon */}
       <FontAwesomeIcon
         icon={faArrowUpFromBracket}
         size="2x"
         style={{
-          //   backgroundColor: "#fff",
           color: "#009247",
           borderRadius: "50%",
           padding: "12px",
@@ -49,8 +96,18 @@ export default function FileUploader({ onFileSelect, error }) {
         Drag & drop an image here, or click the icon
       </Typography>
 
+      {preview && (
+        <Box sx={{ mt: 2 }}>
+          <img
+            src={preview}
+            alt="Preview"
+            style={{ width: "120px", height: "120px", objectFit: "cover" }}
+          />
+        </Box>
+      )}
+
       {acceptedFiles.length > 0 && (
-        <Typography variant="body2" color="inherit" sx={{ mt: 1 }}>
+        <Typography variant="body2" sx={{ mt: 1 }}>
           {acceptedFiles[0].name}
         </Typography>
       )}

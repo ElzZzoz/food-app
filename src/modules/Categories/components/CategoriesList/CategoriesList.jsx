@@ -15,7 +15,7 @@
  *  - Shows loading state, empty data state, and toast notifications
  */
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -25,16 +25,23 @@ import Header from "../../../Shared/components/Header/Header";
 import boyPhoto from "../../../../assets/images/BoyPhoto.png";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import { Modal, Spinner } from "react-bootstrap";
+import { Dropdown, Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEdit,
+  faEllipsisV,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import Pagination from "react-bootstrap/Pagination";
 
 // Custom components
 import NoData from "../../../Shared/components/NoData/NoData";
 import DeleteConfirmation from "../../../Shared/components/DeleteConfirmation/DeleteConfirmation";
+import { Navigate, useNavigate } from "react-router-dom";
 
 function CategoriesList() {
+  const navigate = useNavigate();
+
   /** ---------------------- State Management ---------------------- */
 
   const [categories, setCategories] = useState([]);
@@ -52,6 +59,20 @@ function CategoriesList() {
 
   // State for search
   const [searchQuery, setSearchQuery] = useState("");
+
+  //cutom Toggle
+  const CustomToggle = forwardRef(({ onClick }, ref) => (
+    <span
+      ref={ref}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick(e);
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      <FontAwesomeIcon icon={faEllipsisV} />
+    </span>
+  ));
 
   /** ---------------------- Form Validation ---------------------- */
 
@@ -262,20 +283,46 @@ function CategoriesList() {
                       {new Date(category.modificationDate).toLocaleString()}
                     </td>
                     <td>
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleShowUpdate(category)}
-                      >
-                        Update
-                      </Button>
-                      <FontAwesomeIcon
-                        icon={faTrash}
-                        style={{ cursor: "pointer", color: "red" }}
-                        onClick={() => handleShowDelete(category.id)}
-                        title="Delete Category"
-                      />
+                      <Dropdown align="end">
+                        <Dropdown.Toggle
+                          as={CustomToggle}
+                          style={{ cursor: "pointer" }}
+                          id={`dropdown-${category.id}`}
+                        >
+                          <FontAwesomeIcon icon={faEllipsisV} />
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                          {/* View */}
+                          {/* <Dropdown.Item
+                              onClick={() =>
+                                navigate(`/dashboard/recipes/${id}`)
+                              }
+                            >
+                              <FontAwesomeIcon icon={faEye} className="me-2" />
+                              View
+                            </Dropdown.Item> */}
+
+                          {/* Update */}
+                          <Dropdown.Item
+                            onClick={() =>
+                              navigate(`/dashboard/recipes-data/${category.id}`)
+                            }
+                          >
+                            <FontAwesomeIcon icon={faEdit} className="me-2" />
+                            Update
+                          </Dropdown.Item>
+
+                          {/* Delete */}
+                          <Dropdown.Item
+                            onClick={() => handleShowDelete(category.id)}
+                            className="text-danger"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="me-2" />
+                            Delete
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
                     </td>
                   </tr>
                 ))}

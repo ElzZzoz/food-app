@@ -128,3 +128,15 @@
 .custom-table .no-border {
   border: none !important;
 }
+
+.card {
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.card img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}

@@ -24,6 +24,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
   faEllipsisV,
+  faEye,
+  faHeart,
   // faEye,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
@@ -32,6 +34,7 @@ import Pagination from "react-bootstrap/Pagination";
 // Custom Components
 import DeleteConfirmation from "../../../Shared/components/DeleteConfirmation/DeleteConfirmation";
 import NoData from "../../../Shared/components/NoData/NoData";
+import { useAuth } from "../../../../context/useAuth";
 
 function RecipesList() {
   // ============================
@@ -49,7 +52,7 @@ function RecipesList() {
   const [searchQuery, setSearchQuery] = useState(""); // search query
   const [tagId, setTagId] = useState(""); // tag id for filtering
   const [categoryId, setCategoryId] = useState(""); // category id for filtering
-
+  const { userData } = useAuth();
   const navigate = useNavigate();
 
   // react-hook-form
@@ -244,6 +247,50 @@ function RecipesList() {
     }
   };
 
+  // add to favs
+  const handleAddToFavourites = async (recipeId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return toast.error("No token found in localStorage");
+
+    try {
+      // 1️⃣ Fetch current favourites first
+      const res = await axios.get(
+        "https://upskilling-egypt.com:3006/api/v1/userRecipe/",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const favs = res.data.data || [];
+
+      // 2️⃣ Check if this recipe is already there
+      const alreadyExists = favs.some((fav) => fav.recipe.id === recipeId);
+
+      if (alreadyExists) {
+        toast.info("This recipe is already in your favourites!");
+        return;
+      }
+
+      // 3️⃣ Otherwise → add it
+      await axios.post(
+        "https://upskilling-egypt.com:3006/api/v1/userRecipe/",
+        { recipeId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Recipe added to favourites!");
+      navigate("/dashboard/favourites");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error adding to favourites");
+      console.error("Error adding to favourites:", err.response?.data || err);
+    }
+  };
+
   // ============================
   // Lifecycle
   // ============================
@@ -275,13 +322,15 @@ function RecipesList() {
               Manage your recipes — add, update, or delete them as needed.
             </p>
           </div>
-          <Button
-            variant="primary"
-            className="bg-success fw-semibold"
-            onClick={() => navigate("/dashboard/recipes-data")}
-          >
-            Add New Recipe
-          </Button>
+          {userData?.userGroup === "SuperAdmin" && (
+            <Button
+              variant="primary"
+              className="bg-success fw-semibold"
+              onClick={() => navigate("/dashboard/recipes-data")}
+            >
+              Add New Recipe
+            </Button>
+          )}
         </div>
 
         {/* Filters Row */}
@@ -389,36 +438,57 @@ function RecipesList() {
 
                           <Dropdown.Menu>
                             {/* View */}
-                            {/* <Dropdown.Item
+                            <Dropdown.Item
                               onClick={() =>
-                                navigate(`/dashboard/recipes/${id}`)
+                                navigate(`/dashboard/recipes-view/${id}`)
                               }
                             >
                               <FontAwesomeIcon icon={faEye} className="me-2" />
                               View
-                            </Dropdown.Item> */}
-
-                            {/* Update */}
-                            <Dropdown.Item
-                              onClick={() =>
-                                navigate(`/dashboard/recipes-data/${id}`)
-                              }
-                            >
-                              <FontAwesomeIcon icon={faEdit} className="me-2" />
-                              Update
                             </Dropdown.Item>
 
-                            {/* Delete */}
-                            <Dropdown.Item
-                              onClick={() => handleShowDelete(id)}
-                              className="text-danger"
-                            >
-                              <FontAwesomeIcon
-                                icon={faTrash}
-                                className="me-2"
-                              />
-                              Delete
-                            </Dropdown.Item>
+                            {/* Favourite (hidden for Admins) */}
+                            {userData?.userGroup !== "SuperAdmin" && (
+                              <Dropdown.Item
+                                onClick={() => handleAddToFavourites(id)}
+                              >
+                                <FontAwesomeIcon
+                                  icon={faHeart}
+                                  className="me-2 text-danger"
+                                />
+                                Favourite
+                              </Dropdown.Item>
+                            )}
+
+                            {/* Show Update & Delete only for SuperAdmin */}
+                            {userData?.userGroup === "SuperAdmin" && (
+                              <>
+                                {/* Update */}
+                                <Dropdown.Item
+                                  onClick={() =>
+                                    navigate(`/dashboard/recipes-data/${id}`)
+                                  }
+                                >
+                                  <FontAwesomeIcon
+                                    icon={faEdit}
+                                    className="me-2"
+                                  />
+                                  Update
+                                </Dropdown.Item>
+
+                                {/* Delete */}
+                                <Dropdown.Item
+                                  onClick={() => handleShowDelete(id)}
+                                  className="text-danger"
+                                >
+                                  <FontAwesomeIcon
+                                    icon={faTrash}
+                                    className="me-2"
+                                  />
+                                  Delete
+                                </Dropdown.Item>
+                              </>
+                            )}
                           </Dropdown.Menu>
                         </Dropdown>
                       </td>

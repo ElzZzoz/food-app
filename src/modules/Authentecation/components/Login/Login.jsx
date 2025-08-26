@@ -1,11 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../../assets/images/auth-logo.png";
 import { useForm } from "react-hook-form";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Spinner from "../../../Shared/components/Spinner/Spinner";
 import { emailValidation } from "../../../Shared/components/utils/formValidations";
+import { useAuth } from "../../../../context/useAuth";
 
-function Login({ showPassword, setShowPassword, onLoginSubmit, loginSuccess }) {
+function Login() {
+  const { login, loginSuccess } = useAuth(); // ✅ use login not onLoginSubmit
+  const [showPassword, setShowPassword] = useState(false); // ✅ local state
   const navigate = useNavigate();
 
   const {
@@ -15,7 +18,7 @@ function Login({ showPassword, setShowPassword, onLoginSubmit, loginSuccess }) {
   } = useForm();
 
   const submitForm = async (data) => {
-    await onLoginSubmit(data); // send full form data to parent
+    await login(data); // send full form data to parent
   };
 
   useEffect(() => {
@@ -120,4 +123,4 @@ function Login({ showPassword, setShowPassword, onLoginSubmit, loginSuccess }) {
   );
 }
 
-export default React.memo(Login);
+export default Login;
